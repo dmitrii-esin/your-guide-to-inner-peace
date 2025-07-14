@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Interactive Guide to Mental Wellness</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Earth Tones (Background: #FDFBF8, Primary Text: #383838, Accent: #A57C65, Secondary Accent: #8F9779, Highlight: #E07A5F) -->
+    <!-- Application Structure Plan: The SPA is designed with a persistent left-hand sidebar for intuitive, non-linear navigation. This task-oriented structure allows users to jump directly to their area of need: understanding core concepts ('The Foundation'), learning a specific technique ('Your Toolkit'), or finding a solution for a specific issue ('Address Your Challenges'). An interactive dashboard ('Vicious Cycle Explorer') provides a personalized experience. This is superior to a linear report as it empowers the user, reduces cognitive load by chunking information, and reinforces learning by actively connecting problems to tools. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Cognitive Triangle -> Goal: Explain core CBT model -> Viz: Interactive HTML/JS diagram -> Interaction: Click nodes for examples -> Justification: More engaging and clearer than a static image.
+        - Report Info: Dichotomy of Control -> Goal: Teach classification skill -> Viz: JS Drag-and-Drop exercise -> Interaction: User categorizes stressors, gets feedback -> Justification: Active learning is superior to passive reading for skill acquisition.
+        - Report Info: 8 User Problems -> Goal: Provide personalized feedback & guidance -> Viz: Chart.js Radar Chart with sliders -> Interaction: User rates problems, chart updates, and tailored tool suggestions appear -> Justification: Creates a personalized, diagnostic experience that increases engagement and directs the user to relevant solutions.
+        - Report Info: Technique Worksheets (DTR, PST) -> Goal: Allow practice of the skill -> Viz: HTML Forms -> Interaction: User fills out fields -> Justification: Directly mimics the therapeutic practice, moving theory into application.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #383838;
+        }
+        .main-accent-bg { background-color: #A57C65; }
+        .main-accent-text { color: #A57C65; }
+        .secondary-accent-bg { background-color: #8F9779; }
+        .secondary-accent-text { color: #8F9779; }
+        .highlight-bg { background-color: #E07A5F; }
+        .highlight-text { color: #E07A5F; }
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 3px solid transparent;
+        }
+        .nav-link.active {
+            background-color: #F3EFEA;
+            color: #A57C65;
+            border-left-color: #A57C65;
+        }
+        .nav-link:hover {
+            background-color: #F3EFEA;
+            border-left-color: #A57C65;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .draggable { cursor: grab; }
+        .drop-zone { border: 2px dashed #D1C4B8; min-height: 100px; }
+        .drop-zone.over { background-color: #F3EFEA; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <aside id="sidebar" class="w-full md:w-64 main-accent-bg text-white flex-shrink-0">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">Your Guide</h1>
+                <p class="text-sm opacity-80">to Inner Peace</p>
+            </div>
+            <nav id="main-nav" class="flex flex-row md:flex-col p-3 md:p-0">
+                <a href="#foundation" class="nav-link text-white font-semibold py-3 px-6 block w-full text-left md:w-auto flex-1 md:flex-initial">The Foundation</a>
+                <a href="#toolkit" class="nav-link text-white font-semibold py-3 px-6 block w-full text-left md:w-auto flex-1 md:flex-initial">Your Toolkit</a>
+                <a href="#challenges" class="nav-link text-white font-semibold py-3 px-6 block w-full text-left md:w-auto flex-1 md:flex-initial">Your Challenges</a>
+                <a href="#explorer" class="nav-link text-white font-semibold py-3 px-6 block w-full text-left md:w-auto flex-1 md:flex-initial">My Explorer</a>
+            </nav>
+            <div class="p-6 mt-auto hidden md:block">
+                <p class="text-xs text-white opacity-70">"The chief task in life is simply this: to identify and separate matters so that I can say clearly to myself which are externals not under my control, and which have to do with the choices I actually control." <br>- Epictetus</p>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10 lg:p-12 overflow-y-auto">
+
+            <section id="foundation" class="content-section">
+                <h2 class="text-3xl font-bold main-accent-text mb-4">The Foundation: Understanding Your Inner World</h2>
+                <p class="text-lg mb-8 text-gray-700">Lasting change begins with understanding. This section introduces the core principles that form the foundation of this guide. We'll explore how thoughts, feelings, and behaviors are connected, and learn the single most powerful concept for reclaiming your peace: focusing only on what you can control.</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-bold mb-3 secondary-accent-text">The Vicious Cycle of Anxiety & Depression</h3>
+                        <p class="mb-4 text-gray-600">Our thoughts, feelings, and actions are locked in a powerful feedback loop. A negative thought can trigger painful feelings, which in turn lead us to behave in ways that reinforce the original thought. Click on each element to see examples.</p>
+                        <div id="cognitive-triangle" class="relative w-full h-80 flex items-center justify-center">
+                            <div class="absolute w-full h-full">
+                                <div class="absolute top-1/2 left-1/2 w-48 h-48 border-2 border-dashed border-gray-300 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                            </div>
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 text-center">
+                                <button data-node="thoughts" class="triangle-node bg-amber-100 text-amber-800 font-semibold py-2 px-4 rounded-full shadow-md hover:bg-amber-200 transition">Thoughts</button>
+                            </div>
+                            <div class="absolute bottom-0 left-1/4 -translate-x-1/2 text-center">
+                                <button data-node="feelings" class="triangle-node bg-sky-100 text-sky-800 font-semibold py-2 px-4 rounded-full shadow-md hover:bg-sky-200 transition">Feelings</button>
+                            </div>
+                            <div class="absolute bottom-0 right-1/4 translate-x-1/2 text-center">
+                                <button data-node="behaviors" class="triangle-node bg-green-100 text-green-800 font-semibold py-2 px-4 rounded-full shadow-md hover:bg-green-200 transition">Behaviors</button>
+                            </div>
+                            <div id="triangle-info" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 text-center text-gray-700 font-medium p-4 bg-white/70 backdrop-blur-sm rounded-lg">Click a node to learn more.</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-bold mb-3 secondary-accent-text">The Dichotomy of Control: An Interactive Practice</h3>
+                        <p class="mb-4 text-gray-600">The Stoics taught that peace comes from separating what we control from what we don't. Drag the stressors below into the correct category to practice this essential skill.</p>
+                        <div id="stressors-pool" class="flex flex-wrap gap-2 mb-4 p-2 bg-gray-100 rounded">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-semibold text-center mb-2">✅ In My Control</h4>
+                                <div id="control-zone" class="drop-zone p-3 rounded-lg bg-green-50"></div>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-center mb-2">❌ Not In My Control</h4>
+                                <div id="no-control-zone" class="drop-zone p-3 rounded-lg bg-red-50"></div>
+                            </div>
+                        </div>
+                         <div id="dichotomy-feedback" class="text-center mt-3 font-medium h-6"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="toolkit" class="content-section">
+                <h2 class="text-3xl font-bold main-accent-text mb-4">Your Toolkit: Practical Skills for Change</h2>
+                <p class="text-lg mb-8 text-gray-700">This is your library of evidence-based techniques. Each tool is designed to help you manage difficult thoughts, tolerate distress, and build a more fulfilling life. Click any tool to learn how to use it.</p>
+                <div id="toolkit-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+            </section>
+
+            <section id="challenges" class="content-section">
+                <h2 class="text-3xl font-bold main-accent-text mb-4">Address Your Challenges</h2>
+                <p class="text-lg mb-8 text-gray-700">Here are the specific issues you identified. Select one to see a tailored intervention plan that combines the tools from your toolkit into a practical strategy for that specific problem.</p>
+                <div class="flex flex-wrap gap-4 mb-8" id="challenge-buttons">
+                </div>
+                <div id="challenge-content" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 min-h-[300px]">
+                    <p class="text-gray-500">Please select a challenge to see its intervention plan.</p>
+                </div>
+            </section>
+
+            <section id="explorer" class="content-section">
+                <h2 class="text-3xl font-bold main-accent-text mb-4">My Vicious Cycle Explorer</h2>
+                <p class="text-lg mb-8 text-gray-700">This dashboard helps you visualize how different challenges might be affecting you right now. Use the sliders to rate how much each issue is impacting you. The chart will update to show your unique pattern, and the system will suggest the most relevant tools from your toolkit to help.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-bold mb-3 secondary-accent-text">Your Ratings</h3>
+                        <div id="sliders-container" class="space-y-4"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 secondary-accent-text">Your Pattern</h3>
+                        <div class="chart-container flex-grow">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        <div class="mt-4">
+                             <h4 class="font-semibold text-lg main-accent-text">Recommended Tools:</h4>
+                             <p id="recommended-tools" class="text-gray-700">Adjust the sliders to see recommendations.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const appState = {
+                currentSection: 'foundation',
+                stressors: [
+                    { id: 's1', text: 'Another person\'s opinion of me', control: false },
+                    { id: 's2', text: 'My effort on a project', control: true },
+                    { id: 's3', text: 'The final outcome of an election', control: false },
+                    { id: 's4', text: 'My choice to be kind', control: true },
+                    { id: 's5', text: 'Whether it rains tomorrow', control: false },
+                    { id: 's6', text: 'The actions of my colleagues', control: false },
+                    { id: 's7', text: 'My response to injustice', control: true },
+                    { id: 's8', text: 'How I spend my free time', control: true },
+                ],
+                triangleContent: {
+                    thoughts: `<strong>Example:</strong> "I'm going to fail this presentation. Everyone will think I'm incompetent."<br><em>This is a prediction (fortune-telling) and assuming you know what others think (mind-reading).</em>`,
+                    feelings: `<strong>Example:</strong> A surge of anxiety, a knot in your stomach, tight shoulders, a feeling of dread.<br><em>These physical and emotional sensations are triggered by the thought.</em>`,
+                    behaviors: `<strong>Example:</strong> Avoiding preparation, staying up all night ruminating, or calling in sick.<br><em>These actions are attempts to cope with the painful feelings, but often make the situation worse.</em>`,
+                },
+                toolkitData: [
+                    { id: 'dtr', title: 'Dysfunctional Thought Record (DTR)', content: `
+                        <p class="mb-4 text-gray-600">This is the core tool of CBT. It's a structured way to identify, challenge, and change your automatic negative thoughts (ANTs). It's like being a detective for your own mind.</p>
+                        <div class="space-y-4">
+                            <div><label class="font-semibold block mb-1">1. Situation (What happened?)</label><textarea class="w-full p-2 border rounded-md" rows="2"></textarea></div>
+                            <div><label class="font-semibold block mb-1">2. Automatic Thoughts (What went through my mind?)</label><textarea class="w-full p-2 border rounded-md" rows="2"></textarea></div>
+                            <div><label class="font-semibold block mb-1">3. Emotions (How did I feel? Rate 0-100)</label><input type="text" class="w-full p-2 border rounded-md"></div>
+                            <div><label class="font-semibold block mb-1">4. Evidence Against the Thought (What proves it's not 100% true?)</label><textarea class="w-full p-2 border rounded-md" rows="2"></textarea></div>
+                            <div><label class="font-semibold block mb-1">5. Balanced Thought (A more realistic, helpful perspective)</label><textarea class="w-full p-2 border rounded-md" rows="2"></textarea></div>
+                        </div>
+                    `},
+                    { id: 'ba', title: 'Behavioral Activation (BA)', content: `
+                        <p class="mb-4 text-gray-600">The antidote to depression's inertia. The principle: <strong>Action precedes motivation.</strong> Instead of waiting to feel better to do things, you do things to feel better. Schedule activities that give you a sense of pleasure or mastery.</p>
+                        <div class="space-y-4">
+                            <div><label class="font-semibold block mb-1">Value I want to honor (e.g., Health, Connection):</label><input type="text" class="w-full p-2 border rounded-md"></div>
+                            <div><label class="font-semibold block mb-1">One small "Pleasure" activity:</label><input type="text" class="w-full p-2 border rounded-md"></div>
+                            <div><label class="font-semibold block mb-1">One small "Mastery" (accomplishment) activity:</label><input type="text" class="w-full p-2 border rounded-md"></div>
+                            <div><label class="font-semibold block mb-1">When will I schedule this?</label><input type="text" class="w-full p-2 border rounded-md"></div>
+                        </div>
+                    `},
+                     { id: 'tipp', title: 'TIPP Skill (Distress Tolerance)', content: `
+                        <p class="mb-4 text-gray-600">An emotional first-aid kit from DBT for when you are overwhelmed. It uses body chemistry to bring down extreme emotion quickly.</p>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                           <li><strong>T</strong>emperature: Splash face with cold water or use a cold pack on your eyes/cheeks for 30s.</li>
+                           <li><strong>I</strong>ntense Exercise: 1-5 minutes of vigorous activity (jumping jacks, run in place).</li>
+                           <li><strong>P</strong>aced Breathing: Slow your breathing. Exhale longer than you inhale (e.g., in for 4, out for 6).</li>
+                           <li><strong>P</strong>aired Muscle Relaxation: Tense muscles as you inhale, then release completely as you exhale.</li>
+                        </ul>
+                    `},
+                    { id: 'exposure', title: 'Graded Exposure', content: `
+                        <p class="mb-4 text-gray-600">The most effective way to overcome anxiety. You gradually and repeatedly face feared situations until your brain learns they aren't dangerous. Create a "fear ladder" and start low.</p>
+                         <div class="space-y-4">
+                            <div><label class="font-semibold block mb-1">My Social Goal:</label><input type="text" class="w-full p-2 border rounded-md" value="Have a 5-min chat with a colleague"></div>
+                            <div><label class="font-semibold block mb-1">Step 1 (Low Anxiety - SUDS 30):</label><input type="text" class="w-full p-2 border rounded-md" value="Make eye contact with a barista"></div>
+                            <div><label class="font-semibold block mb-1">Step 2 (Medium Anxiety - SUDS 50):</label><input type="text" class="w-full p-2 border rounded-md" value="Ask a coworker about their weekend"></div>
+                            <div><label class="font-semibold block mb-1">Step 3 (High Anxiety - SUDS 70):</label><input type="text" class="w-full p-2 border rounded-md" value="Attend a work social for 15 mins"></div>
+                        </div>
+                    `},
+                    { id: 'pst', title: 'Problem-Solving Therapy (PST)', content: `
+                        <p class="mb-4 text-gray-600">A structured method for tackling overwhelming problems by breaking them down. It moves you from emotional reaction to logical action.</p>
+                         <div class="space-y-4">
+                            <div><label class="font-semibold block mb-1">1. Define Problem Clearly (Not "my job is toxic" but...):</label><textarea class="w-full p-2 border rounded-md" rows="2">My manager gives me urgent tasks on Friday afternoons.</textarea></div>
+                            <div><label class="font-semibold block mb-1">2. Realistic Goal:</label><textarea class="w-full p-2 border rounded-md" rows="2">To establish a boundary around weekend work.</textarea></div>
+                            <div><label class="font-semibold block mb-1">3. Brainstorm Solutions (no judgment):</label><textarea class="w-full p-2 border rounded-md" rows="2">1. Talk to manager. 2. Talk to HR. 3. Look for a new job. 4. Send a weekly status email.</textarea></div>
+                             <div><label class="font-semibold block mb-1">4. Choose Best Option & First Step:</label><textarea class="w-full p-2 border rounded-md" rows="2">I will talk to my manager. First step: Draft a DEAR MAN script.</textarea></div>
+                        </div>
+                    `},
+                    { id: 'dearman', title: 'DEAR MAN (Assertiveness)', content: `
+                        <p class="mb-4 text-gray-600">A DBT skill for communicating what you want, saying no, and resolving conflict effectively while maintaining self-respect.</p>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                           <li><strong>D</strong>escribe the facts.</li>
+                           <li><strong>E</strong>xpress your feelings with "I" statements.</li>
+                           <li><strong>A</strong>ssert your need clearly.</li>
+                           <li><strong>R</strong>einforce the positive outcome.</li>
+                           <li>(stay) <strong>M</strong>indful of your goal.</li>
+                           <li><strong>A</strong>ppear confident.</li>
+                           <li><strong>N</strong>egotiate if needed.</li>
+                        </ul>
+                    `}
+                ],
+                challengesData: [
+                    { id: 'c1', title: 'Caring About Opinions', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Shift focus from their mind to your actions.</h4>
+                        <p class="mb-4">This comes from placing your self-worth in something you don't control: their thoughts. The strategy is to reclaim that control.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                           <li><strong>Dichotomy of Control:</strong> Constantly ask, "Is their opinion in my control? Is my character?" Focus on your actions.</li>
+                           <li><a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="dtr"><strong>Dysfunctional Thought Record (DTR):</strong></a> Challenge the "mind-reading" distortion. What's the actual evidence they are thinking negatively of you?</li>
+                           <li><strong>Radical Acceptance:</strong> Practice accepting that some people may not like you, and that you can survive this discomfort. Your worth is not determined by universal approval.</li>
+                        </ul>
+                    `},
+                     { id: 'c2', title: 'Intolerance of Different Views', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Shift goal from "convincing" to "understanding".</h4>
+                        <p class="mb-4">This anxiety comes from a need for certainty. A different view can feel like a threat to your own. The goal is to develop cognitive flexibility.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                           <li><strong>Dichotomy of Control:</strong> Their beliefs are not in your control. Your response is.</li>
+                           <li><a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="dearman"><strong>GIVE Skill (part of DEAR MAN):</strong></a> Focus on being <strong>G</strong>entle, acting <strong>I</strong>nterested, and <strong>V</strong>alidating their perspective ("I can see why you feel that way"). This defuses the need to "win".</li>
+                           <li><a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="dtr"><strong>DTR:</strong></a> Challenge "black-and-white" thinking. Can two views be valid at once?</li>
+                        </ul>
+                    `},
+                    { id: 'c3', title: 'Intolerance of Injustice', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Follow the "Accept, then Act" protocol.</h4>
+                        <p class="mb-4">Feeling distress at injustice is normal. The suffering comes from feeling powerless. The strategy is to manage your emotions first, then act effectively.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Step 1 - Accept:</strong> Use <strong>Radical Acceptance</strong> to acknowledge the painful reality of what happened. This stops the futile fight with the past.</li>
+                            <li><strong>Step 2 - Act:</strong> Once calm, use <a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="pst"><strong>Problem-Solving Therapy (PST)</strong></a> to create a logical plan. Then use <a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="dearman"><strong>DEAR MAN</strong></a> to assertively communicate your needs.</li>
+                        </ul>
+                    `},
+                    { id: 'c4', title: 'Feeling Tension', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Use "bottom-up" skills to regulate your nervous system.</h4>
+                        <p class="mb-4">Chronic tension is your body stuck in "fight or flight". The fastest way to calm the mind is often by calming the body first.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                           <li><strong>Daily Practice:</strong> Practice <strong>Diaphragmatic (Belly) Breathing</strong> and <strong>Progressive Muscle Relaxation (PMR)</strong> for 5-10 mins daily to lower your baseline tension.</li>
+                           <li><strong>In a Crisis:</strong> Use the <a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="tipp"><strong>TIPP</strong></a> skill for immediate relief from overwhelming tension or anxiety.</li>
+                        </ul>
+                    `},
+                    { id: 'c5', title: 'Intrusive Negative Thoughts', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Change your relationship with thoughts.</h4>
+                        <p class="mb-4">The problem isn't having thoughts; it's believing them automatically. The goal is to see thoughts as passing mental events, not facts.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                           <li><strong>Mindfulness (Cognitive Defusion):</strong> Practice noticing your thoughts without engaging. Say "I am having the thought that..." to create distance.</li>
+                           <li><strong>Worry Time:</strong> Schedule a 15-minute "worry period" each day. If a worry comes up outside that time, postpone it. This proves you have control over the process of worrying.</li>
+                           <li><a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="dtr"><strong>DTR:</strong></a> For particularly "sticky" thoughts, use a full DTR to challenge its validity directly.</li>
+                        </ul>
+                    `},
+                    { id: 'c6', title: 'Irritability and Anger', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Investigate the anger and manage your vulnerabilities.</h4>
+                        <p class="mb-4">Irritability is often a sign of depletion or a defense against more vulnerable feelings like fear or sadness.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                           <li><strong>Check the Facts:</strong> Ask, "Is my anger justified by the facts, or is it unhelpful right now?"</li>
+                           <li><strong>Opposite Action:</strong> If anger is unjustified/unhelpful, act opposite to the urge. Instead of attacking, be gentle or walk away to cool down.</li>
+                           <li><strong>PLEASE Skill:</strong> Proactively manage your baseline resilience by taking care of your <strong>P</strong>hysica<strong>L</strong> illness, balanced <strong>E</strong>ating, avoiding mood-<strong>A</strong>ltering drugs, balanced <strong>S</strong>leep, and getting <strong>E</strong>xercise.</li>
+                        </ul>
+                    `},
+                    { id: 'c7', title: 'Weekend Worry', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Replace unstructured worry time with structured, value-driven action.</h4>
+                        <p class="mb-4">Anxiety thrives in a vacuum. The unstructured nature of weekends allows the mind to default to worry. The strategy is to fill that vacuum proactively.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                           <li><a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="ba"><strong>Behavioral Activation (BA):</strong></a> This is the #1 tool. Plan your weekend in advance with a balance of "Pleasure" and "Mastery" activities. If you are busy doing things that matter, there is less time to worry.</li>
+                           <li><strong>Decatastrophizing:</strong> For specific worries (e.g., finances), ask: What's the worst, best, and most realistic outcome? What specific steps could I take to cope if the worst happened?</li>
+                        </ul>
+                    `},
+                    { id: 'c8', title: 'Loneliness & Social Anxiety', content: `
+                        <h4 class="text-lg font-semibold mb-2">Plan: Break the avoidance cycle with new experiences.</h4>
+                        <p class="mb-4">This is a painful feedback loop: anxiety causes avoidance, which leads to loneliness, which reinforces the anxious belief that you'll be rejected.</p>
+                        <strong class="block mb-2">Key Tools:</strong>
+                        <ul class="list-disc list-inside space-y-2">
+                           <li><a href="#toolkit" class="tool-link main-accent-text hover:underline" data-tool="exposure"><strong>Graded Exposure:</strong></a> The primary treatment. Create a "fear ladder" of social situations and start practicing with low-anxiety steps repeatedly until the fear subsides.</li>
+                           <li><strong>Behavioral Experiments:</strong> Treat each exposure as an experiment to test your anxious predictions. (Prediction: "They will think I'm awkward." Result: "They smiled and answered my question.")</li>
+                           <li><strong>Mindfulness:</strong> During conversations, focus your attention *outward* on the other person, not inward on your own anxiety.</li>
+                        </ul>
+                    `}
+                ],
+                explorerProblems: [
+                    { id: 'c1', label: 'Caring About Opinions', tools: ['dtr'] },
+                    { id: 'c2', label: 'Intolerance of Views', tools: ['dearman'] },
+                    { id: 'c3', label: 'Injustice at Work', tools: ['pst', 'dearman'] },
+                    { id: 'c4', label: 'Feeling Tension', tools: ['tipp'] },
+                    { id: 'c5', label: 'Intrusive Thoughts', tools: ['dtr'] },
+                    { id: 'c6', label: 'Irritability', tools: ['tipp'] },
+                    { id: 'c7', label: 'Weekend Worry', tools: ['ba'] },
+                    { id: 'c8', label: 'Social Anxiety', tools: ['exposure'] }
+                ]
+            };
+            
+            const navLinks = document.querySelectorAll('#main-nav a');
+            const sections = document.querySelectorAll('.content-section');
+
+            function showSection(sectionId) {
+                appState.currentSection = sectionId;
+                sections.forEach(section => {
+                    section.classList.toggle('active', section.id === sectionId);
+                });
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.hash === `#${sectionId}`);
+                });
+                window.scrollTo(0, 0);
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = e.currentTarget.hash.substring(1);
+                    showSection(sectionId);
+                });
+            });
+
+            function initFoundation() {
+                const triangleNodes = document.querySelectorAll('.triangle-node');
+                const triangleInfo = document.getElementById('triangle-info');
+                triangleNodes.forEach(node => {
+                    node.addEventListener('click', (e) => {
+                        const contentType = e.currentTarget.dataset.node;
+                        triangleInfo.innerHTML = appState.triangleContent[contentType];
+                    });
+                });
+
+                const stressorsPool = document.getElementById('stressors-pool');
+                appState.stressors.forEach(s => {
+                    const el = document.createElement('div');
+                    el.id = s.id;
+                    el.textContent = s.text;
+                    el.className = 'draggable bg-white p-2 rounded shadow-sm border cursor-grab';
+                    el.draggable = true;
+                    stressorsPool.appendChild(el);
+                });
+
+                let draggedItem = null;
+                document.addEventListener('dragstart', e => {
+                    if (e.target.classList.contains('draggable')) {
+                        draggedItem = e.target;
+                        setTimeout(() => e.target.style.display = 'none', 0);
+                    }
+                });
+                document.addEventListener('dragend', e => {
+                    if (draggedItem) {
+                        setTimeout(() => {
+                           draggedItem.style.display = 'block';
+                           draggedItem = null;
+                        }, 0);
+                    }
+                });
+
+                const dropZones = document.querySelectorAll('.drop-zone');
+                dropZones.forEach(zone => {
+                    zone.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        zone.classList.add('over');
+                    });
+                    zone.addEventListener('dragleave', e => {
+                        zone.classList.remove('over');
+                    });
+                    zone.addEventListener('drop', e => {
+                        e.preventDefault();
+                        zone.classList.remove('over');
+                        if (draggedItem) {
+                            zone.appendChild(draggedItem);
+                            checkDichotomy(draggedItem, zone.id);
+                        }
+                    });
+                });
+                
+                const feedbackEl = document.getElementById('dichotomy-feedback');
+                function checkDichotomy(item, zoneId) {
+                    const stressor = appState.stressors.find(s => s.id === item.id);
+                    const isCorrect = (stressor.control && zoneId === 'control-zone') || (!stressor.control && zoneId === 'no-control-zone');
+                    
+                    if (isCorrect) {
+                        feedbackEl.textContent = 'Correct! This is a productive place to focus energy.';
+                        feedbackEl.className = 'text-center mt-3 font-medium h-6 text-green-600';
+                    } else {
+                        feedbackEl.textContent = 'Good try. That one actually belongs in the other category.';
+                         feedbackEl.className = 'text-center mt-3 font-medium h-6 text-red-600';
+                    }
+                    setTimeout(() => feedbackEl.textContent = '', 2500);
+                }
+            }
+
+            function initToolkit() {
+                const toolkitGrid = document.getElementById('toolkit-grid');
+                appState.toolkitData.forEach(tool => {
+                    const card = document.createElement('div');
+                    card.innerHTML = `
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
+                            <h3 class="text-xl font-bold mb-3 secondary-accent-text">${tool.title}</h3>
+                            <div class="tool-content hidden text-gray-700">${tool.content}</div>
+                            <button class="mt-auto pt-2 text-sm font-semibold main-accent-text hover:underline self-start toggle-tool">Learn More</button>
+                        </div>
+                    `;
+                    toolkitGrid.appendChild(card);
+                });
+
+                toolkitGrid.addEventListener('click', e => {
+                    if (e.target.classList.contains('toggle-tool')) {
+                        const content = e.target.previousElementSibling;
+                        const isHidden = content.classList.toggle('hidden');
+                        e.target.textContent = isHidden ? 'Learn More' : 'Show Less';
+                    }
+                });
+            }
+
+            function initChallenges() {
+                const challengeButtons = document.getElementById('challenge-buttons');
+                const challengeContent = document.getElementById('challenge-content');
+                appState.challengesData.forEach(challenge => {
+                    const button = document.createElement('button');
+                    button.dataset.challengeId = challenge.id;
+                    button.textContent = challenge.title;
+                    button.className = 'challenge-btn bg-white py-2 px-4 rounded-full shadow-sm border hover:bg-amber-50 hover:border-amber-400 transition font-medium';
+                    challengeButtons.appendChild(button);
+                });
+                
+                challengeButtons.addEventListener('click', e => {
+                    if(e.target.classList.contains('challenge-btn')) {
+                        const challengeId = e.target.dataset.challengeId;
+                        const challengeData = appState.challengesData.find(c => c.id === challengeId);
+                        challengeContent.innerHTML = challengeData.content;
+                        challengeContent.querySelectorAll('.challenge-btn.active').forEach(b => b.classList.remove('active', 'main-accent-bg', 'text-white'));
+                        e.target.classList.add('active', 'main-accent-bg', 'text-white');
+                    }
+                });
+
+                challengeContent.addEventListener('click', e => {
+                    if (e.target.classList.contains('tool-link')) {
+                        e.preventDefault();
+                        const toolId = e.target.dataset.tool;
+                        showSection('toolkit');
+                        
+                        setTimeout(() => {
+                           const toolCards = document.querySelectorAll('#toolkit-grid > div');
+                           toolCards.forEach(card => {
+                               const contentDiv = card.querySelector('.tool-content');
+                               const toggleBtn = card.querySelector('.toggle-tool');
+                               const toolData = appState.toolkitData.find(t => t.id === toolId);
+                               if (card.querySelector('h3').textContent === toolData.title) {
+                                   contentDiv.classList.remove('hidden');
+                                   toggleBtn.textContent = 'Show Less';
+                                   card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                   card.querySelector('.bg-white').classList.add('ring-2', 'ring-amber-400');
+                                   setTimeout(() => {
+                                       card.querySelector('.bg-white').classList.remove('ring-2', 'ring-amber-400');
+                                   }, 2000);
+                               }
+                           });
+                        }, 100);
+                    }
+                })
+            }
+
+            function initExplorer() {
+                const slidersContainer = document.getElementById('sliders-container');
+                const recommendedToolsEl = document.getElementById('recommended-tools');
+                
+                appState.explorerProblems.forEach(problem => {
+                    const sliderDiv = document.createElement('div');
+                    sliderDiv.innerHTML = `
+                        <label for="${problem.id}-slider" class="block text-sm font-medium text-gray-700">${problem.label}</label>
+                        <input type="range" id="${problem.id}-slider" data-problem-id="${problem.id}" min="0" max="10" value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    `;
+                    slidersContainer.appendChild(sliderDiv);
+                });
+
+                const ctx = document.getElementById('radarChart').getContext('2d');
+                const radarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: appState.explorerProblems.map(p => p.label.replace(/ /g, '\n')),
+                        datasets: [{
+                            label: 'Current Impact',
+                            data: appState.explorerProblems.map(() => 3),
+                            backgroundColor: 'rgba(165, 124, 101, 0.2)',
+                            borderColor: 'rgba(165, 124, 101, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(165, 124, 101, 1)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 10,
+                                pointLabels: {
+                                    font: { size: 10 }
+                                }
+                            }
+                        },
+                        plugins: {
+                           legend: {
+                               display: false
+                           }
+                        }
+                    }
+                });
+
+                function updateChartAndRecommendations() {
+                    const values = [];
+                    let highImpactProblems = [];
+
+                    appState.explorerProblems.forEach((problem, index) => {
+                        const slider = document.getElementById(`${problem.id}-slider`);
+                        const value = parseInt(slider.value, 10);
+                        values[index] = value;
+                        if (value >= 7) {
+                            highImpactProblems.push(problem);
+                        }
+                    });
+
+                    radarChart.data.datasets[0].data = values;
+                    radarChart.update();
+
+                    if (highImpactProblems.length > 0) {
+                        const uniqueTools = [...new Set(highImpactProblems.flatMap(p => p.tools))];
+                        recommendedToolsEl.innerHTML = uniqueTools.map(toolId => {
+                            const tool = appState.toolkitData.find(t => t.id === toolId);
+                            return `<a href="#toolkit" class="tool-link inline-block bg-amber-100 text-amber-800 font-semibold py-1 px-3 rounded-full m-1 hover:bg-amber-200" data-tool="${tool.id}">${tool.title}</a>`;
+                        }).join('');
+                    } else {
+                        recommendedToolsEl.textContent = 'Your challenges seem balanced. Explore the toolkit for general well-being.';
+                    }
+                }
+
+                slidersContainer.addEventListener('input', updateChartAndRecommendations);
+                recommendedToolsEl.addEventListener('click', e => {
+                    if (e.target.classList.contains('tool-link')) {
+                         e.preventDefault();
+                         const toolId = e.target.dataset.tool;
+                         showSection('toolkit');
+                          setTimeout(() => {
+                           const toolCards = document.querySelectorAll('#toolkit-grid > div');
+                           toolCards.forEach(card => {
+                               const contentDiv = card.querySelector('.tool-content');
+                               const toggleBtn = card.querySelector('.toggle-tool');
+                               const toolData = appState.toolkitData.find(t => t.id === toolId);
+                               if (card.querySelector('h3').textContent === toolData.title) {
+                                   contentDiv.classList.remove('hidden');
+                                   toggleBtn.textContent = 'Show Less';
+                                   card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                   card.querySelector('.bg-white').classList.add('ring-2', 'ring-amber-400');
+                                   setTimeout(() => {
+                                       card.querySelector('.bg-white').classList.remove('ring-2', 'ring-amber-400');
+                                   }, 2000);
+                               }
+                           });
+                        }, 100);
+                    }
+                });
+                updateChartAndRecommendations();
+            }
+
+            initFoundation();
+            initToolkit();
+            initChallenges();
+            initExplorer();
+            showSection('foundation');
+        });
+    </script>
+</body>
+</html>
